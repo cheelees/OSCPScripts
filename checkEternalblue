@@ -1,0 +1,30 @@
+#!/bin/bash
+
+#Script to check each of the machines with SMB open to see if they're vulnerable to EternalBlue
+#Assumes you already have a greppable nmap output for the machines checking for ports 139&445.
+if [ -z "$1" ] || [ -z "$2" ];
+then 
+	echo "[*]Basic SMB Scanner Script"
+	echo "[*]Usage: $0 <scan type> <greppable nmap file> \n
+Scan types:
+	-o 		OS Discovery
+	-e		EternalBlue Vulnerability Checking\n"
+	exit 0
+	fi
+#
+script=""
+if [ $1 == "-o" ]; then
+	echo "[*] Performing OS Discovery"
+	script="smb-os-discovery.nse"
+elif [ $1 == "-e" ]; then
+	echo "[*]Performing EternalBlue Vulnerability Detection"
+	script="smb-vuln-ms17-010.nse"
+fi
+#If the file is given, run through each of them with nmap to check for eternalblue
+for machine in $(cat $2 | grep open | cut -d " " -f 2); do
+	nmap --script $script -p 139,445 -oG scan.txt $machine
+done
+
+
+
+
